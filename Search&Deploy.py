@@ -132,7 +132,8 @@ if config.get('Startup', False):
 
 # Start of the GUI
 app = ctk.CTk()
-app.title("File Transfer Tool")
+app.Icon = 'favicon.ico'
+app.title("Search & Deploy")
 app.geometry("480x160")
 
 # Make the grid adjust to the window
