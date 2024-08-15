@@ -13,10 +13,10 @@ config_file = 'config.cfg'
 # Variables for creating a shortcut
 program_path = os.path.dirname(__file__)
 startup_folder = os.path.join(os.getenv('APPDATA'),'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup')
-shortcut_file = os.path.join(program_path, 'Extract Job Copier.lnk')
-# We need a file counter
-files_transferred = 0
-thread_count = 4
+shortcut_file = os.path.join(program_path, 'Search & Deploy.lnk')
+
+files_transferred = 0 # We need a file counter
+thread_count = 4 # Set Max workers
 
 # Load the JSON formatted config file and 
 def load_config():
@@ -34,7 +34,7 @@ def save_config(config):
 # Delete the shortcut file when the Startup checkbox is unchecked
 def delete_shortcut():
     if os.path.exists(shortcut_file):
-        os.remove(os.path.join(startup_folder, 'Extract Job Copier.lnk'))
+        os.remove(os.path.join(startup_folder, 'Search & Deploy.lnk'))
 
 # Transfer the file from source to destination if it doesn't exist
 # or if the source file modified time is greater than the destination files
@@ -54,8 +54,9 @@ def transfer_file(source_file, dest_file):
 
 # Transfer the files from the source directory if they match the pattern criteria
 def process_files(root, files, dest_path):
+    pattern_list = config["Patterns"]
     for file in files:
-        if "SPCA" in file or "SPCB" in file:
+        if pattern_list in file:
             source_file = os.path.join(root, file)
             dest_file = os.path.join(dest_path, file)
             transfer_file(source_file, dest_file)
