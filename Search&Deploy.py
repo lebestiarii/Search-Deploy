@@ -16,7 +16,7 @@ startup_folder = os.path.join(os.getenv('APPDATA'),'Microsoft', 'Windows', 'Star
 shortcut_file = os.path.join(program_path, 'Search & Deploy.lnk')
 
 files_transferred = 0 # We need a file counter
-thread_count = 4 # Set Max workers
+thread_count = 4 # Set MaxThreadWorkers
 
 # Load the JSON formatted config file and 
 def load_config():
@@ -54,9 +54,12 @@ def transfer_file(source_file, dest_file):
 
 # Transfer the files from the source directory if they match the pattern criteria
 def process_files(root, files, dest_path):
-    pattern_list = config["Patterns"]
+    if config["Patterns"]:
+        pattern_list = config["Patterns"]
+    else:
+        pattern_list = ['SPCA.JOB.INQUIRE','SPCB.JOB.INQUIRE']
     for file in files:
-        if pattern_list in file:
+        if any(pattern_list in file for pattern in pattern_list):
             source_file = os.path.join(root, file)
             dest_file = os.path.join(dest_path, file)
             transfer_file(source_file, dest_file)
@@ -64,6 +67,9 @@ def process_files(root, files, dest_path):
 # Transfer files from source to destination using up to four threadworkers
 def start_transfer(source_path, dest_path):
     files_transferred = 0
+    global thread_count
+    if config['MaxThreadWorkers']:
+        thread_count = config['MaxThreadWorkers']
     with ThreadPoolExecutor(max_workers=thread_count) as executor:
         for root, dirs, files in os.walk(source_path):
             executor.submit(process_files, root, files, dest_path)
