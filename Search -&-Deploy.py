@@ -81,7 +81,6 @@ def start_transfer(source_path, dest_path):
 def validate_and_start():
     source_dir = source_path_var.get()
     dest_dir = destination_path_var.get()
-    #print(search_criteria_var.get())
 
     # Split the search criteria to the list, removing spaces
     no_space_pattern = search_criteria_var.get().replace(' ','')
@@ -92,8 +91,11 @@ def validate_and_start():
 
     if toggle_update_svn:
         svn_command = f"svn update {source_dir}"
-        print(svn_command)
-        #subprocess.run(svn_command)
+        print(f"Update SVN: {svn_command}")
+        try:
+            subprocess.run(svn_command)
+        except Exception as e:
+            messagebox.showerror("SVN Error", f"SVN not setup.\n{e}")
 
     if not os.path.isdir(source_dir):
         messagebox.showerror("Error", "Source directory does not exist.")
@@ -107,7 +109,6 @@ def validate_and_start():
     start_transfer(source_dir, dest_dir)
     global files_transferred
     show_popup(files_transferred)
-    #messagebox.showinfo("Success", f"File transfer completed!\n{files_transferred} files transferred.")
     files_transferred = 0
     text_pattern.remove(search_criteria_var.get())
 
@@ -131,6 +132,16 @@ def toggle_update_svn():
     save_config(config)
     
 
+# Take the current status of the checkbox, update the config,
+# and create or delete the startup shortcut
+def toggle_startup():
+    config['Startup'] = startup_var.get()
+    save_config(config)
+    if startup_var.get():
+        shutil.copy2(shortcut_file, startup_folder)
+    else:
+        delete_shortcut()
+
 # If the Config file exists, is populated, and the Startup Checkbox is True
 def run_silently():
     source_dir = config.get('SourceDirectory')
@@ -140,7 +151,16 @@ def run_silently():
         start_transfer(source_dir, dest_dir)
         # Display the Progress popup window
         show_popup(files_transferred)
-        #messagebox.showinfo("Success", f"File transfer completed!\n{files_transferred} files transferred.\n{shortcut_file}")
+    
+
+# Save settings on exit
+def on_exit():
+    config['SourceDirectory'] = source_path_var.get()
+    config['DestinationDirectory'] = destination_path_var.get()
+    config['SearchCriteria'] = search_criteria_var.get()
+    config['UpdateSVN'] = update_svn_var.get()
+    config['Startup'] = startup_var.get()
+    save_config(config)
     app.destroy()
 
 """
@@ -152,17 +172,6 @@ def show_popup(files_transferred):
     # Create a new toplevel window (popup)
     popup = ctk.CTkToplevel()
     popup.title("Files Transferred")
-
-    # Take the current status of the checkbox, update the config,
-    # and create or delete the startup shortcut
-    def toggle_startup():
-        config['Startup'] = startup_var.get()
-        save_config(config)
-    
-        if startup_var.get():
-            shutil.copy2(shortcut_file, startup_folder)
-        else:
-            delete_shortcut()
 
     # Get the App Coordinates and lock in geometry
     popup.minsize(popup.winfo_width(), popup.winfo_height())
@@ -179,10 +188,9 @@ def show_popup(files_transferred):
     message_label = ctk.CTkLabel(popup_frame, text=f"File transfer completed!\n{files_transferred} files transferred.")
     message_label.pack(pady=30)
     
-    startup_var = ctk.BooleanVar(value=config.get('Startup', False))
     startup_toggle = ctk.CTkCheckBox(popup, text="Run on startup", variable=startup_var, command=toggle_startup).pack(side="left", pady=12,padx=10)
     # OK button to close the popup
-    ok_button = ctk.CTkButton(popup, text="OK", command=popup.destroy)
+    ok_button = ctk.CTkButton(popup, text="OK", command=on_exit)
     ok_button.pack(side="right", pady=10)
 
     popup.focus_set()
@@ -251,23 +259,13 @@ transfer_button = ctk.CTkButton(widget_frame, text="Start Transfer", command=val
 # Define Checkbox values
 startup_var = ctk.BooleanVar(value=config.get('Startup', False))
 # startup_toggle = ctk.CTkCheckBox(toggle_frame, text="Run on startup", variable=startup_var, command=toggle_startup).grid(pady=12,padx=10,column=0,row=4,sticky='w')
-update_svn_var = ctk.BooleanVar(value=config.get('Startup', False))
+update_svn_var = ctk.BooleanVar(value=config.get('UpdateSVN', False))
 update_svn_toggle = ctk.CTkCheckBox(toggle_frame, text="Update SVN", variable=update_svn_var, command=toggle_update_svn).grid(pady=12,padx=10,column=0,row=4,sticky='w')
 
 # If the config indicates to run silently at startup
 if config.get('Startup', False):
     app.iconify()
     run_silently()
-
-# Save settings on exit
-def on_exit():
-    config['SourceDirectory'] = source_path_var.get()
-    config['DestinationDirectory'] = destination_path_var.get()
-    config['SearchCriteria'] = search_criteria_var.get()
-    config['UpdateSVN'] = update_svn_var.get()
-    config['Startup'] = startup_var.get()
-    save_config(config)
-    app.destroy()
 
 app.protocol("WM_DELETE_WINDOW", on_exit)
 app.mainloop()
