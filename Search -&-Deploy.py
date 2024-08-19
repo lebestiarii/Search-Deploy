@@ -89,7 +89,7 @@ def validate_and_start():
     print(f"Text Pattern: {text_pattern}")
     print(f"Thread Count: {thread_count}")
 
-    if toggle_update_svn:
+    if update_svn_var.get():
         svn_command = f"svn update {source_dir}"
         print(f"Update SVN: {svn_command}")
         try:
@@ -137,10 +137,13 @@ def toggle_update_svn():
 def toggle_startup():
     config['Startup'] = startup_var.get()
     save_config(config)
-    if startup_var.get():
-        shutil.copy2(shortcut_file, startup_folder)
-    else:
-        delete_shortcut()
+    try:
+        if startup_var.get():
+            shutil.copy2(shortcut_file, startup_folder)
+        else:
+            delete_shortcut()
+    except Exception as se:
+        messagebox.showerror("Shortcut Error", f"Shortcut copy as errors:\n{shortcut_file}\n{se}")
 
 # If the Config file exists, is populated, and the Startup Checkbox is True
 def run_silently():
