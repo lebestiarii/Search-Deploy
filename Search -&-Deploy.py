@@ -19,7 +19,7 @@ shortcut_file = os.path.join(program_path, 'Search & Deploy.lnk')
 # We need some counters
 files_transferred = 0
 # get the user machines total number of logical cores
-thread_count = os.cpu.count()
+thread_count = os.cpu_count()
 text_pattern = []
 
 # Load the JSON formatted config file and 
@@ -47,7 +47,7 @@ def transfer_file(source_file, dest_file):
     if not os.path.exists(dest_file):
         shutil.copy2(source_file, dest_file)
         files_transferred += 1
-        output_textbox.insert("end", f"Copied new file: {source_file} to {dest_file}")
+        #output_textbox.insert("end", f"Copied new file: {source_file} to {dest_file}")
         print(f"Copied new file: {source_file} to {dest_file}")
     else:
         source_modified = os.path.getmtime(source_file)
@@ -56,7 +56,7 @@ def transfer_file(source_file, dest_file):
         if source_modified > dest_modified:
             shutil.copy2(source_file, dest_file)
             files_transferred += 1
-            output_textbox.insert("end", f"Updated file: {source_file} to {dest_file}")
+            #output_textbox.insert("end", f"Updated file: {source_file} to {dest_file}")
             print(f"Updated file: {source_file} to {dest_file}")
 
 # Transfer the files from the source directory if they match the pattern criteria
@@ -88,11 +88,12 @@ def validate_and_start():
     split_patterns = no_space_pattern.split(',')
     text_pattern.extend(split_patterns)
     print(f"Text Pattern: {text_pattern}")
+    print(f"Thread Count: {thread_count}")
 
     if toggle_update_svn:
         svn_command = f"svn update {source_dir}"
         print(svn_command)
-        subprocess.run(svn_command)
+        #subprocess.run(svn_command)
 
     if not os.path.isdir(source_dir):
         messagebox.showerror("Error", "Source directory does not exist.")
@@ -243,8 +244,8 @@ criteria_entry = ctk.CTkEntry(widget_frame, textvariable=search_criteria_var, wi
 # Start Transfer Button
 transfer_button = ctk.CTkButton(widget_frame, text="Start Transfer", command=validate_and_start).grid(pady=12,padx=10,column=2,row=2,sticky='e')
 
-output_textbox = ctk.CTkTextbox(widget_frame, wrap=ctk.WORD, width=600)
-output_textbox.grid(pady=12, padx=10, columnspan=3, sticky='nsew')
+#output_textbox = ctk.CTkTextbox(widget_frame, wrap=ctk.WORD, width=600)
+#output_textbox.grid(pady=12, padx=10, columnspan=3, sticky='nsew')
 # sys.stdout = TextRedirector(output_textbox)
 
 # Define Checkbox values
