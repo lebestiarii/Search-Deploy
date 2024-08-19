@@ -200,6 +200,8 @@ config = load_config()
 
 app = ctk.CTk()
 app.title("Search & Deploy - File Sorting Tool")
+ctk.set_appearance_mode("System")
+ctk.set_default_color_theme("blue")
 
 # Get the App Coordinates and lock in geometry
 app.update()
