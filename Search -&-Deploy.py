@@ -44,30 +44,23 @@ def delete_shortcut():
 # or if the source file modified time is greater than the destination files
 def transfer_file(source_file, dest_file):
     global files_transferred
-    if not os.path.exists(dest_file):
-        shutil.copy2(source_file, dest_file)
-        files_transferred += 1
-        #output_textbox.insert("end", f"Copied new file: {source_file} to {dest_file}")
-        print(f"Copied new file: {source_file} to {dest_file}")
-    else:
+    try:
         source_modified = os.path.getmtime(source_file)
-        dest_modified = os.path.getmtime(dest_file)
-
-        if source_modified > dest_modified:
+        if not os.path.exists(dest_file) or source_modified > os.path.getmtime(dest_file):
             shutil.copy2(source_file, dest_file)
             files_transferred += 1
-            #output_textbox.insert("end", f"Updated file: {source_file} to {dest_file}")
-            print(f"Updated file: {source_file} to {dest_file}")
+            print(f"Transferred file: {source_file} to {dest_file}")
+    except Exception as fe:
+        messagebox.showerror("File Transfer Error", f"Error transferring file {source_file} to {dest_file}: {fe}")
 
 # Transfer the files from the source directory if they match the pattern criteria
 def process_files(root, files, dest_path):
     global text_pattern
     for file in files:
-        for pattern in text_pattern:
-            if pattern in file:
-                source_file = os.path.join(root, file)
-                dest_file = os.path.join(dest_path, file)
-                transfer_file(source_file, dest_file)
+        if any(pattern in file for pattern in text_pattern):
+            source_file = os.path.join(root, file)
+            dest_file = os.path.join(dest_path, file)
+            transfer_file(source_file, dest_file)
 
 # Transfer files from source to destination using up to four threadworkers
 def start_transfer(source_path, dest_path):
@@ -110,7 +103,7 @@ def validate_and_start():
     global files_transferred
     show_popup(files_transferred)
     files_transferred = 0
-    text_pattern.remove(search_criteria_var.get())
+    text_pattern.clear()
 
 # Get your user inputs for source, destination, and startup configs
 def select_source():
